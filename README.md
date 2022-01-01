@@ -13,6 +13,18 @@ All components are composed in one _docker-composer_ file and runnable with `doc
 There are several options to deploy _Connections_ automatically here via docker-dompose file. 
 The connection can also be entered manually via Airflow > Admin > Connection UI beforehand and exported afterwards.
 
+### export existing Airflow Connections
+
+Use `airflow connections list` to get all defined _Connections_. Use get_uri as _environment variable_
+
+```
+id | conn_id | conn_type | description | host | schema | login   | password | port | is_encrypted | is_extra_encrypted | extra_dejson           | get_uri
+===+=========+===========+=============+======+========+=========+==========+======+==============+====================+========================+============================================
+1  | fs_comm | fs        |             |      |        | airflow | airflow  | None | False        | False              | {'path': '/tmp/data/'} | fs://airflow:airflow@?path=%2Ftmp%2Fdata%2F
+
+```
+
+### add connections to _docker-composer_ file
 ```
 environment:
     &airflow-common-env
@@ -38,7 +50,9 @@ I have added _socat_ [socat - getting started](https://www.redhat.com/sysadmin/g
 
 ## Usage of Airflow DockerOperator
 
-Within the Airflow DAG the `docker_url='tcp://docker-proxy:2375'` can now be used in the DockerOperator, the before added proxy to the necessary re-routing
+Within the Airflow DAG the `docker_url='tcp://docker-proxy:2375'` can now be used in the DockerOperator, the before added proxy to the necessary re-routing.
+
+data can be shared with mount points. For more details see [Manage data in docker](https://docs.docker.com/storage)
 
 ```
 task2 = DockerOperator(
@@ -48,7 +62,11 @@ task2 = DockerOperator(
             api_version='auto',
             auto_remove=True,
             docker_url='tcp://docker-proxy:2375',
-            network_mode="bridge"
+            network_mode="bridge",
+            mount_tmp_dir=False,
+            mounts=[
+                Mount(source="/tmp/data", target="/tmp/data", type="bind"),
+                ]
         )
 ```
 
