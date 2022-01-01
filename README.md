@@ -6,9 +6,10 @@ The idea of this repo was to create an example that shows the containerization o
 The example requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Running Components
-All components are composed on one _docker-composer_ file and runnable with `docker-compose -f docker-compose.yaml up -d`, if you have Docker and Docker Compose installed.
+All components are composed in one _docker-composer_ file and runnable with `docker-compose -f docker-compose.yaml up -d`, if you have Docker and Docker Compose installed.
 
-## docker-compose modifications: add Connections
+# Modifications:
+## docker-compose modifications to add _Connections_
 There are several options to deploy _Connections_ automatically here via docker-dompose file. 
 The connection can also be entered manually via Airflow > Admin > Connection UI beforehand and exported afterwards.
 
@@ -18,9 +19,9 @@ environment:
     AIRFLOW_CONN_FS_CONN: fs://airflow:airflow@?path=%2Ftmp%2Fdata%2F # will NOT show up in Admin > Connection UI
 ```
 
-## docker-compose modifications: add proxy for Airflow DockerOperator
-Besides, the standard _docker-compose_ file (current version 2.2.3) you need a proxy (socat lib.) to invoke docker.sock the containerized tasks in Airflow DockerOperator. 
-I have socat in an additional container to the end of the _docker-compose_ file.
+## docker-compose modifications to add a proxy between Docker and Airflow DockerOperator
+Besides, the standard _docker-compose_ file (current version 2.2.3) you need to add a proxy (socat lib.) to invoke via `docker.sock` the containerized tasks from the Airflow DockerOperator. 
+I have added _socat_ [socat - getting started](https://www.redhat.com/sysadmin/getting-started-socat) in an additional container to the end of the _docker-compose_ file.
 
 ```
   docker-proxy:
@@ -37,7 +38,7 @@ I have socat in an additional container to the end of the _docker-compose_ file.
 
 ## Usage of Airflow DockerOperator
 
-Within the Airflow DAG the docker_url='tcp://docker-proxy:2375' can now be used with the DockerOperator, the additional proxy takes over the necessary re-routing
+Within the Airflow DAG the `docker_url='tcp://docker-proxy:2375'` can now be used in the DockerOperator, the before added proxy to the necessary re-routing
 
 ```
 task2 = DockerOperator(
