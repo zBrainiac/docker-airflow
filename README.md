@@ -160,4 +160,4 @@ Link to [Grafana Dashboard](http://localhost:3000/d/v6SZeoAnk/demo?orgId=1&refre
 ## result
 when everything is started it should look like this:
 
-<video src='images/airflow_DockerOperator.mov' width=360 />
+![This is the result](https://github.com/zBrainiac/docker-airflow/blob/b2595120a0e59ed3ed667611c7de4beb49047939/images/airflow_DockerOperator.mov)
