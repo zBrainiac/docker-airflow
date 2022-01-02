@@ -12,6 +12,13 @@ All components are composed in one _docker-composer_ file and runnable with `doc
 docker-compose -f docker-compose.yaml up -d
 ```
 
+## login into Airflow
+```bash
+username: airflow
+password: airflow
+```
+[http://localhost:8080](http://localhost:8080)
+
 ## docker-compose modifications to add _Connections_
 There are several options to deploy _Connections_ automatically here via docker-dompose file. 
 The connection can also be entered manually via Airflow > Admin > Connection UI beforehand and exported afterwards.
@@ -146,3 +153,11 @@ enhanced _docker-compose_ file
 ```bash
 docker-compose -f docker-compose-TIG.yaml up -d
 ```
+
+# Monitoring
+Link to [Grafana Dashboard](http://localhost:3000/d/v6SZeoAnk/demo?orgId=1&refresh=5s)
+
+## result
+when everything is started it should look like this:
+
+<video src='images/airflow_DockerOperator.mov' width=360 />

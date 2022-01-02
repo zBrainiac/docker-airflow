@@ -28,10 +28,19 @@ with DAG(
     )
 
     # [START howto_operator_bash]
-    run_this = BashOperator(
-        task_id='run_after_loop',
-        bash_command='echo 1',
-    )
+    run_this = DockerOperator(
+            task_id='container_where_the_magic_happens',
+            image='brainiac/multiarch-python-3.3.6-example:0.1.0',
+            command='',
+            api_version='auto',
+            auto_remove=True,
+            docker_url='tcp://docker-proxy:2375',
+            network_mode="bridge",
+            mount_tmp_dir=False,
+            mounts=[
+                Mount(source="/tmp/data", target="/tmp/data", type="bind"),
+                ]
+        )
     # [END howto_operator_bash]
 
     run_this >> run_this_last
