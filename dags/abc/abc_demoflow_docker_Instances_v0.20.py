@@ -17,7 +17,7 @@ def _failure_callback(context):
 with DAG(
     dag_id='abc_demoflow_docker_Instances_v0-2-0',
     schedule_interval='@daily',
-    start_date=datetime(2021, 12, 21),
+    start_date=datetime(2021, 12, 31),
     catchup=True,
     dagrun_timeout=timedelta(minutes=60),
     tags=['MFT', 'raw-data', 'abc'],

@@ -1,0 +1,13 @@
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#datasources
+apiVersion: 1
+deleteDatasources:
+  - name: InfluxDB
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    url: http://influxdb:8086
+    database: telegraf
+    user: telegraf
+    password: supersecret1
+    isDefault: true
