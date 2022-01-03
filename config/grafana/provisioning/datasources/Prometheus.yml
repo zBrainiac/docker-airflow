@@ -1,0 +1,10 @@
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#datasources
+apiVersion: 1
+deleteDatasources:
+  - name: Prometheus
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://airflow-prometheus:9090

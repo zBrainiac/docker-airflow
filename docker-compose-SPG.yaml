@@ -34,12 +34,17 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
+    AIRFLOW__METRICS__STATSD_ON: 'true'
+    AIRFLOW__METRICS__STATSD_HOST: 'statsd-exporter'
+    AIRFLOW__METRICS__STATSD_PORT: '8125'
+    AIRFLOW__METRICS__STATSD_PREFIX: 'airflow'
     AIRFLOW_CONN_FS_CONN: fs://airflow:airflow@?path=%2Ftmp%2Fdata%2F # will NOT show up in Admin > Connection UI
-
+     
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
+    - ./logs:/var/log/grafana
     - ./plugins:/opt/airflow/plugins
     - ./data:/tmp/data
   user: "${AIRFLOW_UID:-50000}:0"
@@ -258,7 +263,47 @@ services:
       - "2376:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      
+  statsd-exporter:
+    container_name: airflow-statsd-exporter
+    image: prom/statsd-exporter:v0.22.4
+    command: "--statsd.listen-udp=:8125 --web.listen-address=:9102 --statsd.mapping-config=/tmp/statsd_mapping.yml"
+    ports:
+      - 9102:9102
+      - 8125:8125/udp
+    volumes:
+            - ./config/statsd//statsd_mapping.yml:/tmp/statsd_mapping.yml
 
+
+  prometheus:
+    container_name: airflow-prometheus
+    image: prom/prometheus
+    ports:
+        - 9090:9090
+    depends_on: 
+      - statsd-exporter
+    volumes:
+        - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+
+  grafana:
+    container_name: grafana-dashboards
+    image: grafana/grafana
+    restart: always
+    ports: 
+      - "3000:3000"
+    depends_on: 
+      - prometheus
+    volumes:
+      - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana/provisioning/datasources/:/etc/grafana/provisioning/datasources/
+      - ./config/grafana/provisioning/dashboards/:/etc/grafana/provisioning/dashboards/
+      - ./config/grafana/dashboards/:/var/lib/grafana/dashboards/
+      - ./config/grafana/plugins/:/var/lib/grafana/plugins/
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
 
 volumes:
   postgres-db-volume:

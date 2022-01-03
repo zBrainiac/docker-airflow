@@ -5,25 +5,30 @@ The idea of this repo was to create an example that shows the containerization o
 ## How to setup
 The example requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Running Components
+For data sharing you need a (tmp) dir. e.g.
+```bash
+mkdir /tmp/data
+```
+
+### Running Components
 All components are composed in one _docker-composer_ file and runnable with `docker-compose -f docker-compose.yaml up -d`, if you have Docker and Docker Compose installed.
 
 ```bash
 docker-compose -f docker-compose.yaml up -d
 ```
 
-## login into Airflow
+### login into Airflow
 ```bash
 username: airflow
 password: airflow
 ```
 [http://localhost:8080](http://localhost:8080)
 
-## docker-compose modifications to add _Connections_
+### docker-compose modifications to add _Connections_
 There are several options to deploy _Connections_ automatically here via docker-dompose file. 
 The connection can also be entered manually via Airflow > Admin > Connection UI beforehand and exported afterwards.
 
-### export existing Airflow Connections
+#### export existing Airflow Connections
 
 Use `airflow connections list` to get all defined _Connections_. Use get_uri as _environment variable_
 
@@ -34,7 +39,7 @@ id | conn_id | conn_type | description | host | schema | login   | password | po
 
 ```
 
-### add connections to _docker-composer_ file
+#### add connections to _docker-composer_ file
 ```
 environment:
     &airflow-common-env
@@ -82,7 +87,7 @@ task2 = DockerOperator(
 ```
 
 
-# Add TIG Monitoring Stack )Telegraf, IndluxDB, Grafana) to _docker-compose_ file
+# Add TIG Monitoring Stack (Telegraf, IndluxDB, Grafana) to _docker-compose_ file
 
 
 ```bash
@@ -154,10 +159,69 @@ enhanced _docker-compose_ file
 docker-compose -f docker-compose-TIG.yaml up -d
 ```
 
+
 # Monitoring
 Link to [Grafana Dashboard](http://localhost:3000/d/v6SZeoAnk/demo?orgId=1&refresh=5s)
 
-## result
-when everything is started it should look like this:
+# Add SPG Monitoring Stack (statsd-exporter, Prometheus, Grafana) to _docker-compose_ file
 
+If you pref. Prometheus which pulls the data from statsd-exporter
+```bash
+docker-compose -f docker-compose-SPG.yaml up -d
+```
+
+enhanced _docker-compose_ file. 
+```yaml
+  statsd-exporter:
+    container_name: airflow-statsd-exporter
+    image: prom/statsd-exporter:v0.22.4
+    command: "--statsd.listen-udp=:8125 --web.listen-address=:9102 --statsd.mapping-config=/tmp/statsd_mapping.yml"
+    ports:
+      - 9102:9102
+      - 8125:8125/udp
+    volumes:
+            - ./config/statsd//statsd_mapping.yml:/tmp/statsd_mapping.yml
+
+  prometheus:
+    container_name: airflow-prometheus
+    image: prom/prometheus
+    ports:
+        - 9090:9090
+    depends_on: 
+      - statsd-exporter
+    volumes:
+        - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    container_name: grafana-dashboards
+    image: grafana/grafana
+    restart: always
+    ports: 
+      - "3000:3000"
+    depends_on: 
+      - prometheus
+    volumes:
+      - ./config/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana/provisioning/datasources/:/etc/grafana/provisioning/datasources/
+      - ./config/grafana/provisioning/dashboards/:/etc/grafana/provisioning/dashboards/
+      - ./config/grafana/dashboards/:/var/lib/grafana/dashboards/
+      - ./config/grafana/plugins/:/var/lib/grafana/plugins/
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+```
+
+# result
+when everything is started it should look like this:
 ![This is the result](https://github.com/zBrainiac/docker-airflow/blob/b2595120a0e59ed3ed667611c7de4beb49047939/images/airflow_DockerOperator.mov)
+
+
+# stop and clean-up
+Don't forget to stop and clean-up your environment
+
+```bash
+docker-compose down &&
+docker rm -f $(docker ps -a -q) &&
+docker volume rm $(docker volume ls -q)
+```
