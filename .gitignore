@@ -2,3 +2,6 @@
 /marcel_readme
 /dags/test/
 
+/dags/dag_file_1.py
+/dags/dag_file_2.py
+/get-pip.py

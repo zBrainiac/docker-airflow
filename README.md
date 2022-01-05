@@ -152,16 +152,12 @@ enhanced _docker-compose_ file
       - GF_AUTH_DISABLE_LOGIN_FORM=true
 ```
 
-## run it
+## Run TIG stack
 ... start and init will take a few minutes! Good opportunity to get a coffee 
 
 ```bash
 docker-compose -f docker-compose-TIG.yaml up -d
 ```
-
-
-# Monitoring
-Link to [Grafana Dashboard](http://localhost:3000/d/v6SZeoAnk/demo?orgId=1&refresh=5s)
 
 # Add SPG Monitoring Stack (statsd-exporter, Prometheus, Grafana) to _docker-compose_ file
 
@@ -211,6 +207,41 @@ enhanced _docker-compose_ file.
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
 ```
+
+# DAG templating multi-file
+with `dag-templating/`:
+ - `dag-config/` contains two Json configuration files with parameters used to dynamically generate Python files for `dag_file_1.py` and `dag_file_2.py`.
+ - `dag-template.py` contains the starting DAG template from which other DAG files are dynamically generated.
+ - `generate-dag-files.py` contains a script to dynamically generate a DAG file for each config file in `dag-config/` by making a copy of `dag-template.py` and replacing key parameters from the config file.
+
+
+```yaml
+dag-templating
+|-- dag-config
+|   |-- dag1-config.json
+|   `-- dag2-config.json
+|-- dag-template.py
+`-- generate-dag-files.py
+
+
+dags
+|-- __pycache__
+|   |-- dag_file_1.cpython-37.pyc
+|   `-- dag_file_2.cpython-37.pyc
+|-- dag_file_1.py
+|-- dag_file_2.py
+```
+
+run generator from the project-root folder _(cached DAGs will clean up during the generation)_
+```yaml
+python3 dag-templating/generate-dag-files.py
+```
+
+# Monitoring
+Link to [Grafana Dashboard](http://localhost:3000/d/v6SZeoAnk/demo?orgId=1&refresh=5s)
+
+
+
 
 # result
 when everything is started it should look like this:
